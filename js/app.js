@@ -8,19 +8,35 @@ const form = document.querySelector('form');
 
 function fetchData(url) {
 	return fetch(url)
+		.then(checkStatus)
 		.then(res => res.json())
+		.catch(error => console.log('Looks like there was a problem',error));
 }
 
-fetchData('https://dog.ceo/api/breeds/list')
-.then(data => generateOptions(data.message))
+Promise.all([
+	fetchData('https://dog.ceo/api/breeds/list'),
+	fetchData('https://dog.ceo/api/breeds/image/random')
+])
+.then(data => {
+	const breedList = data[0].message;
+	const randomImage = data[1].message;
 
-fetchData('https://dog.ceo/api/breeds/image/random')
- .then(data => generateImage(data.message))
+	generateOptions(breedList);
+	generateImage(randomImage);
+})
 
 
 // ------------------------------------------
 //  HELPER FUNCTIONS
 // ------------------------------------------
+
+function checkStatus(response) {
+	if(response.ok) {
+		return Promise.resolve(response)
+	} else {
+		return Promise.reject(new Error(response.statusText));
+	}
+}
 
 function generateOptions(data) {
 	const options = data.map(item => `
